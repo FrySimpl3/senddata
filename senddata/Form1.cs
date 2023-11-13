@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Newtonsoft.Json;
 
+
 namespace senddata
 {
     public partial class Form1 : Form
@@ -20,14 +21,47 @@ namespace senddata
         {
             InitializeComponent();
         }
+        string filePath = "data.json";
 
+        class data
+        {
+            public string Name { get; set; }
+            public string Url { get; set; }
+            public string webhook { get; set; }
+        }
+        private void SaveAndWriteToJsonFile<T>(T data, string filePath)
+        {
+            try
+            {
+                // Convert the data object to a JSON string
+                string jsonString = JsonConvert.SerializeObject(data);
+
+                // Create or overwrite the file and write the JSON string to it
+                File.WriteAllText(filePath, jsonString);
+            }
+            catch (IOException ex)
+            {
+                Console.WriteLine($"Error saving and writing data to file: {ex.Message}");
+            }
+        }
         private void Form1_Load(object sender, EventArgs e)
         {
-
+            pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
+            if (System.IO.File.Exists(filePath))
+            {
+                data data = ReadFromJsonFile<data>(filePath);
+                if (data != null)
+                {
+                    textBox1.Text = data.Name;
+                    textBox2.Text = data.Url;
+                    textBox3.Text = data.webhook;
+                }
+            }
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
+            save();
             if (Clipboard.ContainsImage())
             {
                 System.Drawing.Image image = Clipboard.GetImage();
@@ -91,6 +125,54 @@ namespace senddata
                     }
                 }
             }
+        }
+        private void save()
+        {
+            var data = new data
+            {
+                Name = textBox1.Text,
+                Url = textBox2.Text,
+                webhook = textBox3.Text
+            };
+            SaveAndWriteToJsonFile(data, filePath);
+        }
+        private void Form1_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            save();
+        }
+        private T ReadFromJsonFile<T>(string filePath)
+        {
+            try
+            {
+                if (File.Exists(filePath))
+                {
+                    // Read the JSON data from the file and deserialize it into an object
+                    string jsonContent = File.ReadAllText(filePath);
+                    T data = JsonConvert.DeserializeObject<T>(jsonContent);
+                    return data;
+                }
+            }
+            catch (IOException ex)
+            {
+                Console.WriteLine($"Error reading data from file: {ex.Message}");
+            }
+
+            return default; // Return the default value (null) if reading fails
+        }
+
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+           
+        }
+
+        private void textBox2_TextChanged(object sender, EventArgs e)
+        {
+            
+        }
+
+        private void textBox3_TextChanged(object sender, EventArgs e)
+        {
+            
         }
     }
 }
